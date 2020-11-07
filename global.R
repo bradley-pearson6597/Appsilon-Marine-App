@@ -11,6 +11,10 @@ library(leaflet)
 library(geosphere)
 library(htmltools)
 library(DT)
+library(shinycssloaders)
+
+# Load modules into R Session
+source(paste0(getwd(), "/modules.R"))
 
 # Read ships data into the app & ensre data is of correct type
 ships.data <- read.csv("ships (small).csv") 
@@ -41,3 +45,4 @@ avlat = mean(ships.data$LAT)
 # c = 2 * atan2(sqrt(a), sqrt(1 - a))
 # meters = R * c
 # km = meters / 1000
+
