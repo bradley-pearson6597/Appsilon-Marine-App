@@ -10,12 +10,20 @@ ui <- semanticPage(
   )),
   
   flow_layout(cell_width = "40%",
-              leafletOutput("vesselmap"),
+              tabset(
+                tabs = list(
+                  list(menu = "Map", content = list(shiny::HTML("<center><h3>Longest Distance Map</center></h2>"), 
+                                                    leafletOutput("vesselmap"))),
+                  list(menu = "Data", content = DT::dataTableOutput("vesseldata"))
+                )
+              ),
               vertical_layout(
                 uiOutput("vesseldist"),
                 uiOutput("vesseltime"),
                 uiOutput("vesselspeed"),
-                uiOutput("vesseldestination")
+                uiOutput("vesseldestination"),
+                shiny::HTML("<center><h3>Route Map</center></h2>"),
+                leafletOutput("vesselmap2", height = "200")
                 )
               ),
   flow_layout( 
