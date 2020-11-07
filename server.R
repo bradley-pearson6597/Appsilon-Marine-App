@@ -13,8 +13,6 @@ server <- function(input, output, session){
     vs.names
   })
   
-
-  
   # Render dropdown input when new vessel_type selected
   output$vesselname <- renderUI({
     
@@ -23,7 +21,9 @@ server <- function(input, output, session){
     dropdown_input("vessel_name", vs.names$SHIPNAME , type = "selection", value = "" )
   })
   
-
+  # Dropdown module for server
+  dropdownServer("")
+  
   # Filter ship data and calculate distance between before and after coordinates
   vessel.longesttrip <- eventReactive(input[["vessel_name"]], {
     
@@ -135,28 +135,28 @@ server <- function(input, output, session){
       leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
-        htmlwidgets::onRender("function(el, x) {
-        L.control.zoom({ position: 'topright' }).addTo(this)
-                            }") %>%
-        setView(lng = avlon, lat = avlat, zoom = 10)
+        setView(lng = avlon, lat = avlat, zoom = 10) 
       
     }else{
       
       leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
-        htmlwidgets::onRender("function(el, x) {
-        L.control.zoom({ position: 'topright' }).addTo(this)
-                            }") %>%
-        addPolylines(data = vs.mapdata, lng = ~lon, lat = ~lat, group = ~Trips, color = "grey", fillColor = "white", popup = ~htmlEscape(paste0("Distance Travelled (Meters): ", vs.lt$meters,"m")), label = ~htmlEscape(paste0(vs.lt$SHIPNAME, "'s Journey"))) %>%
-        addCircleMarkers(data = vs.mapdata, lng = vs.lt$LON, vs.lt$LAT, radius = 2, color = "#4b4b4c", opacity = 1, popup = ~htmlEscape(paste0("Longitude:", vs.lt$LON, " Latitude:", vs.lt$LAT))) %>%
-        addCircleMarkers(data = vs.mapdata, lng = vs.lt$LAGLON, vs.lt$LAGLAT, radius = 2, color = "#4b4b4c", opacity = 1, popup = ~htmlEscape(paste0("Longitude:", vs.lt$LAGLON, " Latitude:", vs.lt$LAGLAT)))
+        addPolylines(data = vs.mapdata, lng = ~lon, lat = ~lat, group = ~Trips, color = "#bc7eaf", fillColor = "white", 
+                     label = lapply(paste0("<p>", vs.lt$SHIPNAME, "'s Journey </p> <p>", "Distance Travelled (Meters): ", vs.lt$meters,"m </p>"), htmltools::HTML)) %>%
+        addCircleMarkers(data = vs.mapdata, lng = vs.lt$LON, vs.lt$LAT, radius = 2, color = "#ff6161", opacity = 1, popup = ~htmlEscape(paste0("Longitude:", vs.lt$LON, " Latitude:", vs.lt$LAT))) %>%
+        addCircleMarkers(data = vs.mapdata, lng = vs.lt$LAGLON, vs.lt$LAGLAT, radius = 2, color = "#799afc", opacity = 1, popup = ~htmlEscape(paste0("Longitude:", vs.lt$LAGLON, " Latitude:", vs.lt$LAGLAT))) %>%
+        addLegend("bottomright" ,labels = c("Start of Journey", "End of Journey"),
+                  colors = c("#799afc", "#ff6161"),
+                  title = "Key",
+                  opacity = 1
+        )
       
       }
     
   })
   
-
+  # Create dataset for chosen vessel
   vessel.data <- reactive({
     
     vs.name <- ifelse(is.null(input[["vessel_name"]]), "", input[["vessel_name"]])
@@ -182,6 +182,7 @@ server <- function(input, output, session){
     vs.data
   })
   
+  # Dataset of chosen vessel
   output$vesseldata <- DT::renderDataTable({
     
     vs.data <- vessel.data()
@@ -192,6 +193,7 @@ server <- function(input, output, session){
                                                                 dom = 'Bftsp'))
   })
   
+  # Second Leaflet map showing overall journey of chosen vessel
   output$vesselmap2 <- renderLeaflet({
     
     vs.data <- vessel.data()
@@ -203,10 +205,7 @@ server <- function(input, output, session){
       leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
-        htmlwidgets::onRender("function(el, x) {
-        L.control.zoom({ position: 'topright' }).addTo(this)
-                            }") %>%
-        setView(lng = avlon, lat = avlat, zoom = 10)
+        setView(lng = avlon, lat = avlat, zoom = 10) 
       
     }else{
       
@@ -216,16 +215,29 @@ server <- function(input, output, session){
       leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
-        htmlwidgets::onRender("function(el, x) {
-        L.control.zoom({ position: 'topright' }).addTo(this)
-                            }") %>%
+        addLegend("bottomright" ,labels = c("Longest Journey", "Overall Journey"),
+                  colors = c("#bc7eaf", "grey"),
+                  title = "Key",
+                  opacity = 1
+        ) %>%
         addPolylines(data = vs.data, lng = ~LON, lat = ~LAT, color = "grey", fillColor = "white", popup = ~htmlEscape(paste0("Total Distance Travelled (Kilometers): ", total.disttravelled ,"km"))) %>%
-        addPolylines(data = vs.mapdata, lng = ~lon, lat = ~lat, group = ~Trips, color = "green", fillColor = "white", popup = ~htmlEscape(paste0("Distance Travelled (Meters): ", vs.lt$meters,"m"))) 
+        addPolylines(data = vs.mapdata, lng = ~lon, lat = ~lat, group = ~Trips, color = "#bc7eaf", fillColor = "white", popup = ~htmlEscape(paste0("Distance Travelled (Meters): ", vs.lt$meters,"m"))) 
+
         
     }
     
   })
   
+  output$downloadcsv <- downloadHandler(
+    filename = function() {
+      
+      vs.data <- vessel.data()
+      
+      paste0(unique(vs.data$SHIPNAME), " Vessel Report ",Sys.Date(), ".csv")},
+    content = function(file){
+     write.csv(vessel.data(), file, row.names = FALSE)
+    }
+  )
   
 }
 
