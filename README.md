@@ -8,4 +8,4 @@ This app was created as a recruitment task for Appsilon. The dataset provided wa
 * Information on vessel (Speed, Destination, Time for Distance & Distance Travelled).
 * Overall route of vessel (Mapped).
 ## Pre-Requsities
-Ensure all libraries in global file are installed on local machine.
+Ensure all libraries in global.R file are installed on local machine.
