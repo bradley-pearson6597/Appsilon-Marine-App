@@ -11,27 +11,37 @@ ui <- semanticPage(
   
   flow_layout(cell_width = "40%",
               tabset(
+                # Create 2 separate tabs - 1 for Map & 1 for Data
                 tabs = list(
-                  list(menu = "Map", content = list(shiny::HTML("<center><h3>Longest Distance Map</center></h2>"), 
-                                                    leafletOutput("vesselmap"))),
-                  list(menu = "Data", content = DT::dataTableOutput("vesseldata"))
+                  list(menu = "Map", 
+                       content = list(
+                         shiny::h3("Longest Distance Map", align = "center"),
+                         shinycssloaders::withSpinner(leafletOutput("vesselmap", height = "500"))
+                         )
+                       ),
+                  list(menu = "Data", content = list(
+                    downloadButton(outputId = "downloadcsv", label = "Save as CSV", icon = icon("save")),
+                    DT::dataTableOutput("vesseldata")
+                    )
+                  )
                 )
               ),
-              vertical_layout(
-                uiOutput("vesseldist"),
-                uiOutput("vesseltime"),
-                uiOutput("vesselspeed"),
-                uiOutput("vesseldestination"),
-                shiny::HTML("<center><h3>Route Map</center></h2>"),
-                leafletOutput("vesselmap2", height = "200")
+              tabset(
+                # Create information tab
+                tabs = list(
+                  list(menu = "Information", content = list(
+                    vertical_layout(
+                      uiOutput("vesseldist"),
+                      uiOutput("vesseltime"),
+                      uiOutput("vesselspeed"),
+                      uiOutput("vesseldestination"),
+                      shiny::h3("Route Map", align = "center"),
+                      shinycssloaders::withSpinner(leafletOutput("vesselmap2", height = "200"))
+                      )
+                  ))
                 )
+              )
               ),
-  flow_layout( 
-    p("Choose Vessel Type:"),
-    p("Choose Vessel Name:")
-  ),
-  flow_layout(
-    dropdown_input("vessel_type", unique(ships.data$ship_type), type = "selection multiple", value = ""),
-    uiOutput("vesselname")
-  )
+  # Dropdown modules
+  dropdownUI("")
 )
