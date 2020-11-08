@@ -156,6 +156,8 @@ server <- function(input, output, session){
     
   })
   
+  haversineServer("")
+  
   # Create dataset for chosen vessel
   vessel.data <- reactive({
     
