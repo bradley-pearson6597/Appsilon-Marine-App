@@ -4,8 +4,9 @@ This app was created as a recruitment task for Appsilon. The dataset provided wa
 ## Feature List
 * Dropdown menus for Vessel Type and Vessel Name.
 * Map displaying longest distance travelled by selected vessel between 2 consecutive observations (with key).
+* Formula for calculating longest distance (Harversine Formula).
 * Data of selected vessel (Downloadable as CSV format).
 * Information on vessel (Speed, Destination, Time for Distance & Distance Travelled).
-* Overall route of vessel (Mapped).
+* Overall route map of vessel.
 ## Pre-Requsities
 Ensure all libraries in global.R file are installed on local machine.
