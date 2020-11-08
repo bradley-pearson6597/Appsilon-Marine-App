@@ -4,10 +4,14 @@
 
 dropdownUI <- function(id){
   tagList(
-    flow_layout(p("Choose Vessel Type:", align = "center"),
-                p("Choose Vessel Name:", align = "center")),
     flow_layout(
-      dropdown_input(NS(id, "vessel_type"), unique(ships.data$ship_type), type = "selection multiple search", value = "", default_text = "Vessel Type"),
+                 p("Choose Vessel Type:", align = "center"),
+                 p("Choose Vessel Name:", align = "center")),
+    flow_layout(
+      dropdown_input(NS(id, "vessel_type"), unique(ships.data$ship_type),
+                     type = "selection multiple search",
+                     value = "",
+                     default_text = "Vessel Type"),
       uiOutput(NS(id, "vesselname"))
     )
   )
@@ -30,7 +34,11 @@ dropdownServer <- function(id){
       # Render dropdown input when new vessel_type selected
       output$vesselname <- renderUI({
         vs.names <- vessel.name()
-        dropdown_input("vessel_name", vs.names$SHIPNAME , type = "selection search", value = "", default_text = "Vessel Name" )
+        dropdown_input("vessel_name",
+                       vs.names$SHIPNAME,
+                       type = "selection search",
+                       value = "",
+                       default_text = "Vessel Name")
       })
     }
   )

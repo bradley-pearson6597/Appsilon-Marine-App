@@ -54,5 +54,6 @@ ui <- semanticPage(
                   )
                 )
               )
-              )
+              ),
+  shiny::hr()
 )

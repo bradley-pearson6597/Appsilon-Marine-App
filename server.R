@@ -13,13 +13,6 @@ server <- function(input, output, session){
     vs.names
   })
   
-  # Render dropdown input when new vessel_type selected
-  output$vesselname <- renderUI({
-    
-    vs.names <- vessel.name()
-    
-    dropdown_input("vessel_name", vs.names$SHIPNAME , type = "selection", value = "" )
-  })
   
   # Dropdown module for server
   dropdownServer("")
@@ -33,7 +26,8 @@ server <- function(input, output, session){
     vs.longesttrip <- ships.data %>%
       dplyr::filter(SHIPNAME == vs.name) %>%
       # dplyr::filter(SHIPNAME == "KAROLI") %>%
-      dplyr::mutate(TIMEDIFF = difftime(DATETIME, lag(DATETIME), units = "mins"),
+      dplyr::mutate(LAGDATETIME = lag(DATETIME),
+                    TIMEDIFF = difftime(DATETIME, LAGDATETIME, units = "mins"),
                     TIMEDIFF = round(TIMEDIFF, 2),
                     LAGLAT = lag(LAT),
                     LAGLON = lag(LON),
@@ -46,6 +40,7 @@ server <- function(input, output, session){
                     c = 2 * atan2(sqrt(a), sqrt(1 - a)),
                     meters = EARTHDIST * c,
                     meters = round(meters, 2)) %>%
+      # dplyr::filter(TIMEDIFF <= 5) %>%
       dplyr::arrange(desc(meters), desc(DATETIME)) %>%
       dplyr::slice(1)
     
@@ -62,7 +57,10 @@ server <- function(input, output, session){
       vs.lt <- data.frame(meters = 0)
     }
     
-    message_box(header = "Vessel Distance Travelled (Meters)", content = paste0(vs.lt$meters, " m"), class = "icon", icon_name = "map")
+    message_box(header = "Vessel Distance Travelled (Meters)",
+                content = paste0(vs.lt$meters, " m"),
+                class = "icon",
+                icon_name = "map")
     
   })
   
@@ -75,7 +73,10 @@ server <- function(input, output, session){
       vs.lt <- data.frame(SPEED = 0)
     }
     
-    message_box(header = "Vessel Speed (Knots)", content = paste0(vs.lt$SPEED, " knots"), class = "icon", icon_name = "ship")
+    message_box(header = "Vessel Speed (Knots)",
+                content = paste0(vs.lt$SPEED, " knots"),
+                class = "icon",
+                icon_name = "ship")
     
   })
   
@@ -88,7 +89,10 @@ server <- function(input, output, session){
       vs.lt <- data.frame(DESTINATION = "UNKNOWN")
     }
     
-    message_box(header = "Vessel Destination", content = paste0(vs.lt$DESTINATION), class = "icon", icon_name = "map marker alternate")
+    message_box(header = "Vessel Destination",
+                content = paste0(vs.lt$DESTINATION),
+                class = "icon",
+                icon_name = "map marker alternate")
     
   })
   
@@ -101,7 +105,10 @@ server <- function(input, output, session){
       vs.lt <- data.frame(TIMEDIFF = 0)
     }
     
-    message_box(header = "Vessel Time for Distance (Minutes)", content = paste0(vs.lt$TIMEDIFF, " mins"), class = "icon", icon_name = "stopwatch")
+    message_box(header = "Vessel Time for Distance (Minutes)",
+                content = paste0(vs.lt$TIMEDIFF, " mins"),
+                class = "icon",
+                icon_name = "stopwatch")
     
   })
   
@@ -142,11 +149,29 @@ server <- function(input, output, session){
       leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
-        addPolylines(data = vs.mapdata, lng = ~lon, lat = ~lat, group = ~Trips, color = "#bc7eaf", fillColor = "white", 
+        addPolylines(data = vs.mapdata,
+                     lng = ~lon,
+                     lat = ~lat,
+                     group = ~Trips,
+                     color = "#bc7eaf",
+                     fillColor = "white", 
                      label = lapply(paste0("<p>", vs.lt$SHIPNAME, "'s Journey </p> <p>", "Distance Travelled (Meters): ", vs.lt$meters,"m </p>"), htmltools::HTML)) %>%
-        addCircleMarkers(data = vs.mapdata, lng = vs.lt$LON, vs.lt$LAT, radius = 2, color = "#ff6161", opacity = 1, popup = ~htmlEscape(paste0("Longitude:", vs.lt$LON, " Latitude:", vs.lt$LAT))) %>%
-        addCircleMarkers(data = vs.mapdata, lng = vs.lt$LAGLON, vs.lt$LAGLAT, radius = 2, color = "#799afc", opacity = 1, popup = ~htmlEscape(paste0("Longitude:", vs.lt$LAGLON, " Latitude:", vs.lt$LAGLAT))) %>%
-        addLegend("bottomright" ,labels = c("Start of Journey", "End of Journey"),
+        addCircleMarkers(data = vs.mapdata, 
+                         lng = vs.lt$LON,
+                         vs.lt$LAT,
+                         radius = 2,
+                         color = "#ff6161",
+                         opacity = 1,
+                         popup = ~htmlEscape(paste0("Longitude:", vs.lt$LON, " Latitude:", vs.lt$LAT))) %>%
+        addCircleMarkers(data = vs.mapdata,
+                         lng = vs.lt$LAGLON,
+                         vs.lt$LAGLAT,
+                         radius = 2,
+                         color = "#799afc",
+                         opacity = 1,
+                         popup = ~htmlEscape(paste0("Longitude:", vs.lt$LAGLON, " Latitude:", vs.lt$LAGLAT))) %>%
+        addLegend("bottomright",
+                  labels = c("Start of Journey", "End of Journey"),
                   colors = c("#799afc", "#ff6161"),
                   title = "Key",
                   opacity = 1
@@ -178,7 +203,7 @@ server <- function(input, output, session){
                     a = sin(delta_phi / 2)^2 + cos(phi_1) * cos(phi_2) * sin(delta_lambda / 2)^2,
                     c = 2 * atan2(sqrt(a), sqrt(1 - a)),
                     meters = EARTHDIST * c,
-                    meters = round(meters, 2)) 
+                    meters = round(meters, 2))  
     
     
     vs.data
@@ -189,10 +214,12 @@ server <- function(input, output, session){
     
     vs.data <- vessel.data()
     
-    DT::datatable(vs.data, style = "default", options = list(autoWidth = TRUE,
-                                                                scrollX = TRUE,
-                                                                scrollY = TRUE,
-                                                                dom = 'Bftsp'))
+    DT::datatable(vs.data,
+                  style = "default",
+                  options = list(autoWidth = TRUE,
+                                 scrollX = TRUE,
+                                 scrollY = TRUE,
+                                 dom = 'Bftsp'))
   })
   
   # Second Leaflet map showing overall journey of chosen vessel
@@ -217,13 +244,25 @@ server <- function(input, output, session){
       leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
-        addLegend("bottomright" ,labels = c("Longest Journey", "Overall Journey"),
+        addLegend("bottomright", 
+                  labels = c("Longest Journey", "Overall Journey"),
                   colors = c("#bc7eaf", "grey"),
                   title = "Key",
                   opacity = 1
         ) %>%
-        addPolylines(data = vs.data, lng = ~LON, lat = ~LAT, color = "grey", fillColor = "white", popup = ~htmlEscape(paste0("Total Distance Travelled (Kilometers): ", total.disttravelled ,"km"))) %>%
-        addPolylines(data = vs.mapdata, lng = ~lon, lat = ~lat, group = ~Trips, color = "#bc7eaf", fillColor = "white", popup = ~htmlEscape(paste0("Distance Travelled (Meters): ", vs.lt$meters,"m"))) 
+        addPolylines(data = vs.data,
+                     lng = ~LON,
+                     lat = ~LAT,
+                     color = "grey",
+                     fillColor = "white",
+                     label = ~htmlEscape(paste0("Total Distance Travelled (Kilometers): ", total.disttravelled ,"km"))) %>%
+        addPolylines(data = vs.mapdata,
+                     lng = ~lon,
+                     lat = ~lat,
+                     group = ~Trips,
+                     color = "#bc7eaf",
+                     fillColor = "white",
+                     label = ~htmlEscape(paste0("Longest Distance Travelled (Meters): ", vs.lt$meters,"m"))) 
 
         
     }
