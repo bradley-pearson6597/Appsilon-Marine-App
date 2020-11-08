@@ -6,10 +6,16 @@ ui <- semanticPage(
   title = "Marine App",
   tags$head(tags$style(".leaflet-control-attribution {
                                       display:none;
+                       }
+                       #-haversineform {
+                       overflow-x:scroll;
+                       width = 50px;
                        }"
   )),
-  
-  flow_layout(cell_width = "40%",
+  h3("Filters:", align = "center"),
+  dropdownUI(""),
+  shiny::HTML("<br>"),
+  split_layout(cell_widths = c("50%","50%"), style = "background-color:white",
               tabset(
                 # Create 2 separate tabs - 1 for Map & 1 for Data
                 tabs = list(
@@ -19,11 +25,12 @@ ui <- semanticPage(
                          shinycssloaders::withSpinner(leafletOutput("vesselmap", height = "500"))
                          )
                        ),
-                  list(menu = "Data", content = list(
-                    downloadButton(outputId = "downloadcsv", label = "Save as CSV", icon = icon("save")),
-                    DT::dataTableOutput("vesseldata")
-                    )
-                  )
+                  list(menu = "Calculation",
+                       content = list(
+                         h3("Haversine Formula - Longest Distance Calculated"),
+                         haversineUI("")
+                         )
+                       )
                 )
               ),
               tabset(
@@ -38,10 +45,14 @@ ui <- semanticPage(
                       shiny::h3("Route Map", align = "center"),
                       shinycssloaders::withSpinner(leafletOutput("vesselmap2", height = "200"))
                       )
-                  ))
+                    )
+                  ),
+                  list(menu = "Vessel Data", content = list(
+                    downloadButton(outputId = "downloadcsv", label = "Save as CSV", icon = icon("save")),
+                    DT::dataTableOutput("vesseldata")
+                  )
+                  )
                 )
               )
-              ),
-  # Dropdown modules
-  dropdownUI("")
+              )
 )
