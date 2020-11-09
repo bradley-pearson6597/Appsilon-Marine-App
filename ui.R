@@ -62,10 +62,5 @@ ui <- semanticPage(
                 )
               )
               ),
-  shiny::hr(),
-  shiny::a(shiny::imageOutput(outputId = "appsilonlogo",height = "5%"),
-           href = "http://appsilon.com/",
-           target = "_blank"),
-  
-  
+  shiny::hr()
 )

@@ -283,12 +283,6 @@ server <- function(input, output, session){
     }
   )
   
-  output$appsilonlogo <- renderImage({
-    
-    filename <- "appsilonlogo.png"
-    list(src = filename,
-         contentType = "image/png")
-  }, deleteFile = FALSE)
   
 }
 
