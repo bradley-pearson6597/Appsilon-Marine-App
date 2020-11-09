@@ -17,17 +17,15 @@ server <- function(input, output, session){
   # Dropdown module for server
   dropdownServer("")
   
-  # Filter ship data and calculate distance between before and after coordinates
-  vessel.longesttrip <- eventReactive(input[["vessel_name"]], {
+  # Create dataset for chosen vessel
+  vessel.data <- reactive({
     
     vs.name <- ifelse(is.null(input[["vessel_name"]]), "", input[["vessel_name"]])
     
-    # Calculate distance based on longitude and latitude using Haversine Formula
-    vs.longesttrip <- ships.data %>%
+    vs.data <- ships.data %>%
       dplyr::filter(SHIPNAME == vs.name) %>%
       # dplyr::filter(SHIPNAME == "KAROLI") %>%
-      dplyr::mutate(LAGDATETIME = lag(DATETIME),
-                    TIMEDIFF = difftime(DATETIME, LAGDATETIME, units = "mins"),
+      dplyr::mutate(TIMEDIFF = difftime(DATETIME, lag(DATETIME), units = "mins"),
                     TIMEDIFF = round(TIMEDIFF, 2),
                     LAGLAT = lag(LAT),
                     LAGLON = lag(LON),
@@ -39,8 +37,20 @@ server <- function(input, output, session){
                     a = sin(delta_phi / 2)^2 + cos(phi_1) * cos(phi_2) * sin(delta_lambda / 2)^2,
                     c = 2 * atan2(sqrt(a), sqrt(1 - a)),
                     meters = EARTHDIST * c,
-                    meters = round(meters, 2)) %>%
-      # dplyr::filter(TIMEDIFF <= 5) %>%
+                    meters = round(meters, 2))  
+    
+    
+    vs.data
+  })
+  
+  
+  # Filter ship data and calculate distance between before and after coordinates
+  vessel.longesttrip <- eventReactive(input[["vessel_name"]], {
+    
+    vs.data <- vessel.data()
+    
+    # Calculate distance based on longitude and latitude using Haversine Formula
+    vs.longesttrip <- vs.data %>%
       dplyr::arrange(desc(meters), desc(DATETIME)) %>%
       dplyr::slice(1)
     
@@ -139,14 +149,14 @@ server <- function(input, output, session){
     
     if(nrow(vs.lt) == 0){
       
-      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+      leaflet() %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
         setView(lng = avlon, lat = avlat, zoom = 10) 
       
     }else{
       
-      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+      leaflet() %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
         addPolylines(data = vs.mapdata,
@@ -183,32 +193,7 @@ server <- function(input, output, session){
   
   haversineServer("")
   
-  # Create dataset for chosen vessel
-  vessel.data <- reactive({
-    
-    vs.name <- ifelse(is.null(input[["vessel_name"]]), "", input[["vessel_name"]])
-    
-    vs.data <- ships.data %>%
-      dplyr::filter(SHIPNAME == vs.name) %>%
-      # dplyr::filter(SHIPNAME == "KAROLI") %>%
-      dplyr::mutate(TIMEDIFF = difftime(DATETIME, lag(DATETIME), units = "mins"),
-                    TIMEDIFF = round(TIMEDIFF, 2),
-                    LAGLAT = lag(LAT),
-                    LAGLON = lag(LON),
-                    EARTHDIST = 6371000,
-                    phi_1 = LAT*(pi / 180),
-                    phi_2 = LAGLAT*(pi / 180),
-                    delta_phi = (LAT - LAGLAT) * (pi/180),
-                    delta_lambda = (LON - LAGLON) * (pi/180),
-                    a = sin(delta_phi / 2)^2 + cos(phi_1) * cos(phi_2) * sin(delta_lambda / 2)^2,
-                    c = 2 * atan2(sqrt(a), sqrt(1 - a)),
-                    meters = EARTHDIST * c,
-                    meters = round(meters, 2))  
-    
-    
-    vs.data
-  })
-  
+ 
   # Dataset of chosen vessel
   output$vesseldata <- DT::renderDataTable({
     
@@ -231,7 +216,7 @@ server <- function(input, output, session){
     
     if(nrow(vs.data) == 0){
       
-      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+      leaflet() %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
         setView(lng = avlon, lat = avlat, zoom = 10) 
@@ -241,7 +226,7 @@ server <- function(input, output, session){
       total.disttravelled <- sum(vs.data$meters, na.rm = T) / 1000
       total.disttravelled <- round(total.disttravelled, 2)
       
-      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+      leaflet() %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
         addLegend("bottomright", 
