@@ -10,6 +10,7 @@ This app was created as a recruitment task for Appsilon. The dataset provided wa
 * Overall route map of vessel.
 ## Usage
 All libraries required can be seen the global.R file. The base of the app was created using shiny.semantic 0.4.0.
+
 Unzip ships_data.zip to get ships.csv dataset. 
 ## Roadmap
 Future additions to the app could include:
