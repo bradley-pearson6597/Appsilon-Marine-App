@@ -17,7 +17,7 @@ library(shinycssloaders)
 # Load modules into R Session
 source(paste0(getwd(), "/modules.R"))
 
-# Read ships data into the app & ensre data is of correct type
+# Read ships data into the app & ensure data is of correct type
 ships.data <- read.csv("ships (small).csv") 
 
 # ships.data.small <- ships.data %>% dplyr::slice(1:100000)
