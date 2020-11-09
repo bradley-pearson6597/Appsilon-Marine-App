@@ -12,10 +12,17 @@ ui <- semanticPage(
                        width = 50px;
                        }"
   )),
-  h3("Filters:", align = "center"),
-  dropdownUI(""),
+  h1("Vessel Dashboard", align = "center"),
+  semantic.dashboard::box(
+    title = "Filters",
+    ribbon = FALSE,
+    # color = "violet",
+    dropdownUI("")
+  ),
   shiny::HTML("<br>"),
-  split_layout(cell_widths = c("50%","50%"), style = "background-color:white",
+  split_layout(cell_widths = c("50%","50%"),
+               style = "background-color:white",
+               cell_args = "padding-left: 5px",
               tabset(
                 # Create 2 separate tabs - 1 for Map & 1 for Data
                 tabs = list(
@@ -55,5 +62,10 @@ ui <- semanticPage(
                 )
               )
               ),
-  shiny::hr()
+  shiny::hr(),
+  shiny::a(shiny::imageOutput(outputId = "appsilonlogo",height = "5%"),
+           href = "http://appsilon.com/",
+           target = "_blank"),
+  
+  
 )
