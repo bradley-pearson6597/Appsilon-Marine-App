@@ -25,6 +25,8 @@ server <- function(input, output, session){
     vs.data <- ships.data %>%
       dplyr::filter(SHIPNAME == vs.name) %>%
       # dplyr::filter(SHIPNAME == "KAROLI") %>%
+      dplyr::mutate(DATETIME = strptime(DATETIME, format = "%Y-%m-%d %H:%M:%S")) %>%
+      dplyr::arrange(DATETIME) %>%
       dplyr::mutate(TIMEDIFF = difftime(DATETIME, lag(DATETIME), units = "mins"),
                     TIMEDIFF = round(TIMEDIFF, 2),
                     LAGLAT = lag(LAT),
@@ -149,14 +151,22 @@ server <- function(input, output, session){
     
     if(nrow(vs.lt) == 0){
       
-      leaflet() %>%
+      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+        htmlwidgets::onRender("function(el, x) {
+        L.control.zoom({ position: 'bottomleft' }).addTo(this)
+                              }"
+        ) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
-        setView(lng = avlon, lat = avlat, zoom = 10) 
+        setView(lng = avlon, lat = avlat, zoom = 5) 
       
     }else{
       
-      leaflet() %>%
+      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+        htmlwidgets::onRender("function(el, x) {
+        L.control.zoom({ position: 'bottomleft' }).addTo(this)
+                              }"
+        ) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
         addPolylines(data = vs.mapdata,
@@ -216,17 +226,25 @@ server <- function(input, output, session){
     
     if(nrow(vs.data) == 0){
       
-      leaflet() %>%
+      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+        htmlwidgets::onRender("function(el, x) {
+        L.control.zoom({ position: 'bottomleft' }).addTo(this)
+                              }"
+        ) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
-        setView(lng = avlon, lat = avlat, zoom = 10) 
+        setView(lng = avlon, lat = avlat, zoom = 5) 
       
     }else{
       
       total.disttravelled <- sum(vs.data$meters, na.rm = T) / 1000
       total.disttravelled <- round(total.disttravelled, 2)
       
-      leaflet() %>%
+      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+        htmlwidgets::onRender("function(el, x) {
+        L.control.zoom({ position: 'bottomleft' }).addTo(this)
+                              }"
+                              ) %>%
         addProviderTiles(providers$CartoDB.Positron,
                          options = providerTileOptions(noWrap = TRUE, maxZoom = 20)) %>%
         addLegend("bottomright", 
@@ -264,6 +282,13 @@ server <- function(input, output, session){
      write.csv(vessel.data(), file, row.names = FALSE)
     }
   )
+  
+  output$appsilonlogo <- renderImage({
+    
+    filename <- "appsilonlogo.png"
+    list(src = filename,
+         contentType = "image/png")
+  }, deleteFile = FALSE)
   
 }
 
